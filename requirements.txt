@@ -1,0 +1,16 @@
+pandas
+numpy
+scikit-learn
+matplotlib
+seaborn
+fastapi
+uvicorn
+joblib
+streamlit
+requests
+python-multipart
+openpyxl
+xlrd
+pytest
+httpx
+reportlab
