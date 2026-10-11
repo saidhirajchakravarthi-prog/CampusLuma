@@ -60,4 +60,3 @@ export function Dialog({ open, onClose, title, children, maxWidth = 'max-w-xl' }
       </dialog>
   );
 }
-

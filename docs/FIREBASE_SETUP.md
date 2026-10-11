@@ -60,4 +60,3 @@ To verify email registration and reset, use a test Firebase project and mailbox 
 - `auth/popup-blocked`: allow popups for the app hostname. `auth/popup-closed-by-user` means sign-in was cancelled.
 
 For production, use HTTPS, restrict Firebase API keys by appropriate referrers/APIs, set deployment domains explicitly, and apply the institution's identity, privacy, and data-retention policies.
-

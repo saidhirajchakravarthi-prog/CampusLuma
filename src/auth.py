@@ -73,7 +73,7 @@ def create_access_token(
     """Create a signed, expiring JWT access token."""
     if role not in VALID_ROLES:
         raise ValueError(f"Invalid role '{role}' for access token")
-    
+
     now = datetime.now(timezone.utc)
     delta = expires_delta or timedelta(minutes=JWT_EXPIRE_MINUTES)
     expire = now + delta
@@ -92,7 +92,7 @@ def create_access_token(
 
 def decode_access_token(token: str) -> Dict[str, Any]:
     """Decode and verify a signed JWT access token.
-    
+
     Raises:
         jwt.ExpiredSignatureError: if the token has expired.
         jwt.InvalidTokenError: if the token signature or claims are invalid.
@@ -102,7 +102,7 @@ def decode_access_token(token: str) -> Dict[str, Any]:
 
 def authenticate_user(email: str, password: str) -> Optional[Dict[str, Any]]:
     """Validate user credentials against stored password hash.
-    
+
     Returns user dict if valid and active, None otherwise.
     """
     if not email or not password:
@@ -123,7 +123,7 @@ def authenticate_user(email: str, password: str) -> Optional[Dict[str, Any]]:
 
 def bootstrap_accounts(allow_dev_defaults: bool = True):
     """Bootstrap initial user accounts from environment variables.
-    
+
     Configuration options:
     - CAMPUS_BOOTSTRAP_USERS: JSON array of user objects:
       [{"email": "...", "name": "...", "password": "...", "role": "admin"}]
@@ -170,4 +170,3 @@ def bootstrap_accounts(allow_dev_defaults: bool = True):
         ]
         for user in default_dev_users:
             save_user(user["email"], user["name"], hash_password(user["password"]), user["role"])
-

@@ -14,4 +14,3 @@ export function SyntheticDataBanner({ guest = false }: { guest?: boolean }) {
     </div>
   );
 }
-

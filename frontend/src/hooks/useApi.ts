@@ -54,4 +54,3 @@ export function useApi<T>(fetcher: () => Promise<T>, deps: any[] = []): UseApiRe
   const error = requestError?.key === dependencyKey && requestError.epoch === requestEpoch ? requestError.message : null;
   return { data, loading, error, refetch };
 }
-

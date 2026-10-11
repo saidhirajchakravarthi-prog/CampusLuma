@@ -27,4 +27,3 @@ export function Alert({ type, title, children, className }: AlertProps) {
     </div>
   );
 }
-

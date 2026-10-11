@@ -19,4 +19,3 @@ export function EmptyState({ icon: Icon = Inbox, title, description, action }: E
     </div>
   );
 }
-

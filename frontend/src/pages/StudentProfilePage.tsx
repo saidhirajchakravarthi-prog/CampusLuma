@@ -538,4 +538,3 @@ export function StudentProfilePage() {
     </div>
   );
 }
-

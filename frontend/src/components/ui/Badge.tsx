@@ -48,4 +48,3 @@ export function StatusBadge({ status }: { status: string }) {
       : 'warning';
   return <Badge variant={variant}>{status}</Badge>;
 }
-
