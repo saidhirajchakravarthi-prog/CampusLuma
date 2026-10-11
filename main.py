@@ -337,14 +337,22 @@ def _firebase_admin_app():
     except ValueError:
         pass
 
+    service_account_json = os.getenv("FIREBASE_ADMIN_JSON", "").strip()
     service_account_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "").strip()
     try:
-        credential = credentials.Certificate(service_account_path) if service_account_path else credentials.ApplicationDefault()
+        if service_account_json:
+            # For managed hosts such as Railway, keep the service-account JSON in a
+            # server-side secret variable rather than committing a credential file.
+            credential = credentials.Certificate(json.loads(service_account_json))
+        elif service_account_path:
+            credential = credentials.Certificate(service_account_path)
+        else:
+            credential = credentials.ApplicationDefault()
         return firebase_admin.initialize_app(
             credential, options={"projectId": project_id}, name="student-iq",
         )
     except Exception as exc:
-        raise HTTPException(503, "Firebase Admin credentials could not be initialized. Configure GOOGLE_APPLICATION_CREDENTIALS or application-default credentials.") from exc
+        raise HTTPException(503, "Firebase Admin credentials could not be initialized. Configure the server-only FIREBASE_ADMIN_JSON or GOOGLE_APPLICATION_CREDENTIALS secret.") from exc
 
 
 @app.post("/auth/firebase")
