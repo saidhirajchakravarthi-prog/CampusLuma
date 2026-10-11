@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="520" viewBox="0 0 880 520" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">CampusLuma campus learning illustration</title>
+  <desc id="desc">A campus building, open book, learner, and connected academic indicators in a calm indigo and teal palette.</desc>
+  <defs>
+    <linearGradient id="sky" x1="160" y1="36" x2="693" y2="462" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#818CF8" stop-opacity=".4"/><stop offset="1" stop-color="#0F766E" stop-opacity=".08"/>
+    </linearGradient>
+    <linearGradient id="book" x1="270" y1="321" x2="598" y2="452" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E0E7FF"/><stop offset="1" stop-color="#99F6E4"/>
+    </linearGradient>
+    <filter id="shadow" x="0" y="0" width="880" height="520" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+      <feGaussianBlur stdDeviation="12"/>
+    </filter>
+  </defs>
+  <ellipse cx="439" cy="463" rx="334" ry="24" fill="#050B1C" fill-opacity=".36" filter="url(#shadow)"/>
+  <path d="M440 28c118 0 218 74 251 177 65 22 111 84 111 157 0 92-75 166-167 166H245c-93 0-168-75-168-168 0-77 52-143 123-162C232 96 327 28 440 28Z" fill="url(#sky)"/>
+  <circle cx="692" cy="90" r="4" fill="#99F6E4"/><circle cx="757" cy="201" r="3" fill="#C7D2FE"/><circle cx="154" cy="113" r="3" fill="#99F6E4"/><path d="m721 131 4 10 10 4-10 4-4 10-4-10-10-4 10-4 4-10ZM214 73l3 7 7 3-7 3-3 7-3-7-7-3 7-3 3-7Z" fill="#A5B4FC"/>
+  <path d="M222 262h352v132H222z" fill="#172554" stroke="#A5B4FC" stroke-opacity=".65" stroke-width="3"/>
+  <path d="m194 264 202-116 207 116H194Z" fill="#26376D" stroke="#C7D2FE" stroke-width="3"/>
+  <path d="M367 177h61v52h-61z" fill="#99F6E4" fill-opacity=".9"/><path d="M385 188h26v41h-26z" fill="#172554"/>
+  <path d="M243 286h47v54h-47zM313 286h47v54h-47zM434 286h47v54h-47zM504 286h47v54h-47z" fill="#818CF8" fill-opacity=".52" stroke="#C7D2FE" stroke-opacity=".7" stroke-width="2"/>
+  <path d="M390 296h58v98h-58z" fill="#0F766E" stroke="#99F6E4" stroke-width="2"/><path d="M407 338a12 12 0 1 1 24 0v56h-24v-56Z" fill="#99F6E4"/>
+  <path d="M168 393h540" stroke="#A5B4FC" stroke-opacity=".45" stroke-width="3" stroke-linecap="round"/>
+  <path d="M274 365c45-25 93-26 143-3v89c-50-23-98-22-143 3v-89Z" fill="url(#book)" stroke="#E0E7FF" stroke-width="3"/>
+  <path d="M560 365c-45-25-93-26-143-3v89c50-23 98-22 143 3v-89Z" fill="url(#book)" stroke="#E0E7FF" stroke-width="3"/>
+  <path d="M302 385c27-10 57-9 88 2M302 405c27-10 57-9 88 2M530 385c-27-10-57-9-88 2M530 405c-27-10-57-9-88 2" stroke="#4F46E5" stroke-opacity=".58" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="628" cy="331" r="27" fill="#FDE68A"/><path d="M601 329c1-16 12-26 27-26 14 0 26 10 27 25-15-1-27-5-39-13-4 6-8 10-15 14Z" fill="#312E81"/>
+  <path d="M598 361c9-10 19-15 30-15 16 0 28 10 36 27l17 47h-98l9-59Z" fill="#14B8A6" stroke="#99F6E4" stroke-width="3"/>
+  <path d="m604 375-35 36M649 378l29 24" stroke="#FDE68A" stroke-width="10" stroke-linecap="round"/>
+  <path d="M593 415h86" stroke="#312E81" stroke-width="11" stroke-linecap="round"/>
+  <rect x="612" y="121" width="116" height="70" rx="16" fill="#F8FAFC" fill-opacity=".95" stroke="#C7D2FE" stroke-width="2"/>
+  <path d="M632 168v-15l13-10 13 7 20-16 14 9" stroke="#4F46E5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="632" cy="168" r="4" fill="#0F766E"/><circle cx="692" cy="134" r="4" fill="#0F766E"/>
+  <rect x="130" y="168" width="105" height="62" rx="14" fill="#F8FAFC" fill-opacity=".92" stroke="#A5F3FC" stroke-width="2"/>
+  <path d="M151 209h12v-20h12v20h12v-29h12v29h12" stroke="#0F766E" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M173 112c21-17 45-26 72-29M661 220c24 10 43 25 57 45" stroke="#99F6E4" stroke-opacity=".75" stroke-width="2" stroke-dasharray="6 9"/>
+</svg>
