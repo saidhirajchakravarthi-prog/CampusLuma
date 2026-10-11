@@ -39,7 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           ? usesFirebaseAuth ? 'Firebase accepted the sign-in, but the backend rejected its ID token. Confirm both services use the same Firebase project and that the email is verified.' : 'Invalid email or password. Please verify your credentials and try again.'
           : err.message);
       } else {
-        setError('Could not connect to the API server. Confirm the backend is running at http://127.0.0.1:8000.');
+        setError('Could not connect to the CampusLuma API. Check VITE_API_BASE_URL or confirm the local backend is running.');
       }
       throw err;
     } finally {
@@ -72,7 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else if (err instanceof ApiError) {
         setError(err.status === 401 ? 'Firebase could not verify this Google account. Sign in again and confirm the account email is verified.' : err.message);
       } else {
-        setError('Could not connect to the API server. Confirm the backend is running at http://127.0.0.1:8000.');
+        setError('Could not connect to the CampusLuma API. Check VITE_API_BASE_URL or confirm the local backend is running.');
       }
       throw err;
     } finally {
@@ -96,7 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setRole(null);
       setError(err instanceof ApiError
         ? err.message
-        : 'Could not connect to the API server. Confirm the backend is running at http://127.0.0.1:8000.');
+        : 'Could not connect to the CampusLuma API. Check VITE_API_BASE_URL or confirm the local backend is running.');
       throw err;
     } finally {
       setIsLoading(false);

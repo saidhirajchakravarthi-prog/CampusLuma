@@ -20,6 +20,8 @@ import {
   SessionResponse,
 } from './types';
 
+const configuredApiBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
+
 export class ApiError extends Error {
   constructor(public status: number, message: string) {
     super(message);
@@ -29,7 +31,9 @@ export class ApiError extends Error {
 
 class ApiClient {
   private token: string | null = null;
-  private readonly baseUrl = '/api';
+  private readonly baseUrl = configuredApiBaseUrl
+    ? configuredApiBaseUrl.replace(/\/+$/, '')
+    : '/api';
 
   constructor() {
     this.token = localStorage.getItem('siq_token');
@@ -102,7 +106,7 @@ class ApiClient {
       if (error instanceof DOMException && error.name === 'AbortError') {
         throw new ApiError(0, `The API did not respond within ${timeoutMs / 1000} seconds. Check that FastAPI is running and its Firebase settings are correct.`);
       }
-      throw new ApiError(0, 'Could not reach the CampusLuma API. Confirm FastAPI is running and the frontend API proxy points to it.');
+      throw new ApiError(0, 'Could not reach the CampusLuma API. Check VITE_API_BASE_URL or confirm FastAPI is running behind the local Vite proxy.');
     } finally {
       clearTimeout(timeout);
     }

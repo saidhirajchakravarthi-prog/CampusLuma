@@ -80,7 +80,13 @@ Open your browser at: `http://localhost:5173`
 
 ---
 
-## 3. Account Provisioning & Default Demo Accounts
+## 3. Cloudflare Pages Production Deployment
+
+Cloudflare Pages serves the static React frontend. Deploy FastAPI separately to a backend host that supports Python, Firebase Admin SDK credentials, and persistent storage; Pages is not the API host or a persistent SQLite filesystem. Configure the frontend build-time variables, backend secrets, exact CORS origins, and separate persistent operational/demo database files as described in [docs/CLOUDFLARE_PAGES_DEPLOYMENT.md](docs/CLOUDFLARE_PAGES_DEPLOYMENT.md).
+
+---
+
+## 4. Account Provisioning & Default Demo Accounts
 
 ### Default Local Development Accounts
 On startup, if the database `users` table is empty and no custom `CAMPUS_BOOTSTRAP_USERS` is configured, CampusLuma initializes the following demo accounts with salted PBKDF2 hashes for local testing:
@@ -133,7 +139,7 @@ The default `CAMPUS_AUTH_MODE=local` uses the built-in PBKDF2 account flow for l
    ```powershell
    $env:CAMPUS_AUTH_MODE = "firebase"
    $env:FIREBASE_PROJECT_ID = "your-firebase-project-id"
-   $env:GOOGLE_APPLICATION_CREDENTIALS = "C:\Users\gnane\STUDENT-IQ\secrets\firebase-service-account.json"
+   $env:GOOGLE_APPLICATION_CREDENTIALS = "C:\secure\firebase-service-account.json"
    ```
 
    Keep the service-account file private. The `secrets/` directory and common service-account filenames are ignored by Git.
@@ -150,7 +156,7 @@ To return to the local demo flow, unset the Firebase frontend variables or set `
 
 ---
 
-## 4. Key Application Views
+## 5. Key Application Views
 
 1. **Sign-In (`/`)**: Local PBKDF2 demo sign-in by default, or optional Firebase Email/Password registration/sign-in with verified-email gating, provider password reset, and Google popup sign-in. In Firebase mode, roles are read from the backend user table and local-password sign-in is disabled. Google requires Firebase Console provider and authorized-domain setup.
 2. **Campus Overview (`/`)**: Real-time KPI metric cards (Enrolled, Mean Success Score, Attendance %, Placement Readiness), Risk Distribution donut chart, Score Distribution bar chart, Department Comparison breakdown, and Priority Early Warning insights.
@@ -165,7 +171,7 @@ To return to the local demo flow, unset the Firebase frontend variables or set `
 
 ---
 
-## 5. Verification in the current checkout
+## 6. Verification in the current checkout
 
 | Test Suite / Tool | Command | Result |
 |---|---|---|
@@ -179,7 +185,7 @@ The API test suite exercises login failure/success, JWT expiry and role controls
 
 ---
 
-## 6. Security Limitations & Responsible Analytics
+## 7. Security Limitations & Responsible Analytics
 
 - **Local Prototype Scope**: Signed JWT tokens and PBKDF2 hashing provide secure local authentication. In institutional production environments, integrate with enterprise SAML 2.0 / OpenID Connect (OIDC) identity providers (e.g. Azure AD, Okta) and enforce HTTPS/TLS termination.
 - **Firebase Mode**: Firebase email registration, verification and password reset require Firebase Console setup and server-side Admin SDK credentials. New verified identities receive only the `viewer` role; elevated access remains database-controlled. Google sign-in is implemented with the Firebase Web SDK and uses the same backend ID-token verification and role provisioning. Live provider behavior still requires project setup and has not been verified here. Backend JWT sessions remain short-lived but are not centrally revocable until expiry.
