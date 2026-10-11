@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --navy-900: #0b1329;
+    --navy-800: #111c38;
+    --navy-700: #1b284f;
+    --indigo-primary: #4f46e5;
+    --teal-accent: #0d9488;
+    --canvas: #f8fafc;
+    --surface: #ffffff;
+    --surface-muted: #f1f5f9;
+    --stroke: #e2e8f0;
+    --ink: #0f172a;
+    --ink-muted: #64748b;
+    --success: #047857;
+    --warning: #b45309;
+    --danger: #be123c;
+    --radius-card: 1rem;
+    --radius-control: 0.75rem;
+    --shadow-card: 0 1px 2px rgb(15 23 42 / 0.06), 0 4px 14px rgb(15 23 42 / 0.025);
+    --motion-fast: 160ms;
+  }
+
+  body {
+    background-color: var(--canvas);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  button:not(:disabled) { cursor: pointer; }
+  input, select, textarea { font: inherit; }
+
+  :focus-visible {
+    outline: 3px solid #818cf8;
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .cl-card {
+    min-width: 0;
+    border: 1px solid var(--stroke);
+    border-radius: var(--radius-card);
+    background: var(--surface);
+    box-shadow: var(--shadow-card);
+    transition: box-shadow var(--motion-fast) ease;
+  }
+  .cl-card:hover { box-shadow: 0 5px 18px rgb(15 23 42 / 0.08); }
+  .cl-control {
+    border: 1px solid var(--stroke);
+    border-radius: var(--radius-control);
+    background: var(--surface-muted);
+    color: var(--ink);
+  }
+}
+
+@keyframes siq-card-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

@@ -63,5 +63,5 @@ def predict_student(input_dict):
         "contributing_factors": contributing_factors,
         "factor_method": "Transparent intervention heuristics; these are not causal effects or model feature attributions.",
         "experimental": True,
-        "model_note": "Experimental model trained on synthetic development data; not validated for real student decisions.",
+        "model_note": "Synthetic demo only: the pass target is generated from the same four inputs. This output does not establish or predict validated institutional student outcomes.",
     }

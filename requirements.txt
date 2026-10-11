@@ -14,3 +14,5 @@ xlrd
 pytest
 httpx
 reportlab
+pyjwt
+firebase-admin

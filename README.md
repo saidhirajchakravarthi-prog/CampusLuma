@@ -1,121 +1,188 @@
-# Smart Campus Analytics — development prototype
+# CampusLuma — AI-Powered Student Success Intelligence
 
-This repository upgrades the original student performance project while retaining its Python Random Forest, FastAPI API, and Streamlit interface. SQLite is used for local development so no database server is required. It is a prototype, not a validated student decision system.
+**Illuminate Student Success.** Built for the KPMG India Smart Campus Analytics Challenge. CampusLuma is the rebranded continuation of the STUDENT-IQ project.
 
-## Requirements and setup
+CampusLuma combines an asynchronous FastAPI backend (with SQLite persistence, multi-category normalization scoring, early warning risk analysis, PBKDF2 password hashing, expiring JWT session tokens, and Random Forest classifier inference) with a modern **React + TypeScript + Vite** frontend.
 
-Use Python 3.10 or newer; Python 3.12 or 3.13 is a conservative choice for package compatibility. Python is not installed in the current verification environment. On Windows, install a standard Python runtime from the [official Python for Windows downloads](https://www.python.org/downloads/windows/) or Microsoft Store. Select the Python Install Manager or a normal x64 runtime, then reopen PowerShell. Confirm the runtime with `py -0p` or `python --version`; the `py` launcher alone does not mean a runtime is installed.
+---
 
-From the repository root, create the virtual environment and install the dependencies:
+## 1. Authentication & Security Architecture
+
+### User Sign-In & Password Hashing
+- **Interactive Sign-In**: Interactive users authenticate with institutional email and password via `POST /auth/login`.
+- **Password Hashing**: Passwords are never stored in plaintext. They are salted using 16 cryptographically secure random bytes and hashed using **PBKDF2-HMAC-SHA256** with **100,000 iterations**, adhering to NIST guidelines. Verifications use constant-time `hmac.compare_digest`.
+- **Expiring JWT Tokens**: Successful authentication yields a signed JSON Web Token (JWT) using HMAC-SHA256 (`HS256`). Tokens carry user identity (`sub`), name, role, issuance (`iat`), and expiration (`exp`) timestamps (default: 8 hours).
+- **Backend Role Enforcement**: The backend authorizes every protected operation based on verified token roles (`admin`, `staff`, `analyst`, `viewer`). Client-side UI visibility is an interface convenience; real authorization decisions reside in FastAPI.
+- **Firebase Registration**: Verified Firebase identities are provisioned as read-only `viewer` accounts on first API sign-in. Existing elevated roles remain database-controlled; public requests cannot choose or claim a role.
+- **Guest Demo**: A backend-signed guest role is routed to a separate SQLite sandbox (`CAMPUS_DEMO_DB_PATH`, default `data/campus_demo.db`). It is seeded only from explicitly synthetic bundled records. Guest imports must include row-level synthetic/demo provenance, and interventions, imports, analytics, predictions, and reports are scoped to that sandbox. The restore action requires confirmation and only clears/restores the demo database.
+- **Backward-Compatible API Tokens**: The API bearer token mechanism (`CAMPUS_API_KEYS`) is retained for automated scripts, test suites, and the Streamlit fallback. The backend distinguishes interactive JWT user sessions (`auth_type: "user_session"`) from API tokens (`auth_type: "api_token"`).
+
+---
+
+## 2. Requirements & Setup
+
+### Prerequisites
+- Python 3.10+ (tested on Python 3.13)
+- Node.js 18+ and npm (tested on Node v24.21.0, npm 11.19.0)
+- Windows PowerShell
+
+### Terminal 1: FastAPI Backend Setup
 
 ```powershell
+cd C:\Users\gnane\STUDENT-IQ
+
+# 1. (Optional) Activate virtual environment
 python -m venv .venv
 .venv\Scripts\Activate.ps1
+
+# 2. Install dependencies (FastAPI, pyjwt, scikit-learn, etc.)
 python -m pip install -r requirements.txt
-python -m pytest -q
+
+# 3. Configure local environment variables in PowerShell
+$rng = [Security.Cryptography.RandomNumberGenerator]::Create()
+$secretBytes = New-Object byte[] 32
+$rng.GetBytes($secretBytes)
+$env:CAMPUS_JWT_SECRET = [Convert]::ToBase64String($secretBytes)
+$rng.Dispose()
+$env:CAMPUS_JWT_EXPIRE_MINUTES="480"
+$env:CAMPUS_DB_PATH="data/campus.db"
+$env:CAMPUS_API_URL="http://127.0.0.1:8000"
+
+# (Optional) Customize bootstrap users via JSON array:
+# $env:CAMPUS_BOOTSTRAP_USERS='[{"email":"admin@campus.edu","name":"Administrator","password":"AdminPassword123!","role":"admin"}]'
+
+# 4. Start the FastAPI backend (does not regenerate data or retrain the model)
+uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-Configure separate API and Streamlit terminals using a strong random token. `.env.example` lists the environment variables; the application does not automatically load `.env` files:
+The default demo accounts are initialized only when the users table is empty. Existing model artifacts and synthetic CSV files are not regenerated by startup. To deliberately generate or retrain development artifacts, first inspect the target files: `data/generate_data.py` overwrites `data/student_data.csv`, and `python -m src.train` overwrites `models/model.pkl` and `models/metrics.json`.
+
+FastAPI OpenAPI interactive documentation: `http://127.0.0.1:8000/docs`
+
+---
+
+### Terminal 2: React Frontend Setup
 
 ```powershell
-$env:CAMPUS_API_KEYS='{"your-long-random-token":"admin"}'
-$env:CAMPUS_API_TOKEN='your-long-random-token'
+cd C:\Users\gnane\STUDENT-IQ\frontend
+
+# 1. Install frontend packages
+npm install
+
+# 2. Verify TypeScript types and production build
+npm run build
+
+# 3. Start Vite local development server
+npm run dev
 ```
 
-Allowed roles are `viewer`, `analyst`, `staff`, and `admin`. All API routes require a bearer token. Viewer/analyst tokens can access aggregate overview and cohort results; staff/admin tokens can access student-level profiles, risk lists, imports, interventions, and reports. Only staff/admin can change records. This is a lightweight local API-key control, not a complete institutional identity provider or production-grade authorization system. Use TLS and managed secrets before any deployment.
+Open your browser at: `http://localhost:5173`
 
-The local database is created at `data/campus.db` on API startup. Set `CAMPUS_DB_PATH` to use a different database location. The schema is initialized idempotently with SQLite `user_version=1`; there is no external migration tool yet.
+---
 
-## Start the application
+## 3. Account Provisioning & Default Demo Accounts
 
-The database schema is initialized automatically when the API starts. To initialize it explicitly, set the same database path that the API will use, then run:
+### Default Local Development Accounts
+On startup, if the database `users` table is empty and no custom `CAMPUS_BOOTSTRAP_USERS` is configured, CampusLuma initializes the following demo accounts with salted PBKDF2 hashes for local testing:
+
+| Role | Email | Default Password | Permissions |
+|---|---|---|---|
+| **Admin** | `admin@campus.edu` | `AdminPassword123!` | Complete access to all features, data imports, and reports |
+| **Staff** | `staff@campus.edu` | `StaffPassword123!` | Student directory, profile details, risk lists, interventions, imports, reports |
+| **Analyst** | `analyst@campus.edu` | `AnalystPassword123!` | Overview metrics, cohort analysis, and ML predictor |
+| **Viewer** | `viewer@campus.edu` | `ViewerPassword123!` | Read-only aggregate campus overview and analytics |
+
+*(The login screen includes quick-fill demo buttons to immediately test any role without manual typing).*
+
+### Route and Permission Matrix
+
+| Role | Product routes | Data scope and operations |
+|---|---|---|
+| Guest | Overview, Directory/Profile, Early Warning, Analytics, Imports, Interventions, Predictions, Model Status, Reports | Isolated synthetic sandbox; demo imports/interventions and exports are permitted. No account administration or operational database access. |
+| Viewer | Overview, Analytics, Predictions, Model Status | Aggregate and model endpoints only; student directory, interventions, imports, and exports are denied. |
+| Analyst | Overview, Analytics, Predictions, Model Status | Aggregate analytics and model endpoints; no staff mutation routes. |
+| Staff | Overview, Directory/Profile, Early Warning, Analytics, Imports, Interventions, Predictions, Model Status, Reports | Operational records; authorized import and intervention workflows. |
+| Admin | All staff routes | Existing privileged account and role provisioning process; no public/client role assignment. |
+
+Guests can restore their shared demo sandbox from the visible confirmation control in the guest banner. The bundled CSV is synthetic demonstration data and does not establish real-world score validity or model accuracy. For the complete Firebase provider and server credential setup, see [docs/FIREBASE_SETUP.md](docs/FIREBASE_SETUP.md).
+
+### Creating Accounts via CLI
+Administrators can create or update accounts directly from PowerShell:
 
 ```powershell
-$env:CAMPUS_DB_PATH = (Join-Path (Get-Location) 'data\campus.db')
-python -c "from src.database import initialize; initialize()"
+python -m src.create_user --email "counselor@campus.edu" --name "Dr. Sharma" --role "staff" --password "SecurePass2026!"
 ```
 
-Open two PowerShell terminals from the repository root. In terminal 1 configure the API token and database path, initialize the schema, and start the API:
+### Firebase Email Verification and Password Reset
 
-```powershell
-$env:CAMPUS_API_KEYS='{"dev-only-change-this-token":"admin"}'
-$env:CAMPUS_DB_PATH = (Join-Path (Get-Location) 'data\campus.db')
-python -c "from src.database import initialize; initialize()"
-uvicorn main:app --reload
-```
+The default `CAMPUS_AUTH_MODE=local` uses the built-in PBKDF2 account flow for local demos. It does **not** prove mailbox ownership and it does not send email. To use real Firebase email/password authentication, configure both the browser app and backend verifier; Firebase is not considered active if either side is missing.
 
-To generate and import synthetic dashboard rows, use a third terminal or stop the API after generation and use terminal 2 below. With the API running, from another terminal:
+1. In Firebase Console, create/select a project, open **Authentication → Sign-in method**, and enable **Email/Password**. Under **Authentication → Settings → Authorized domains**, add the hostname that serves the React app (for local development, `localhost`).
+2. In **Project settings → General → Your apps**, register a Web app and copy its Web API key and Project ID. Create `frontend/.env.local` (do not commit it) with:
 
-```powershell
-python data/generate_campus_data.py
-curl.exe -H "Authorization: Bearer dev-only-change-this-token" -F "file=@data/dev_campus_students.csv" http://127.0.0.1:8000/imports
-```
+   ```dotenv
+   VITE_AUTH_MODE=firebase
+   VITE_FIREBASE_PROJECT_ID=your-firebase-project-id
+   VITE_FIREBASE_API_KEY=your-firebase-web-api-key
+   VITE_FIREBASE_AUTH_DOMAIN=your-firebase-project-id.firebaseapp.com
+   ```
 
-In terminal 2 configure the same token for Streamlit and start the UI:
+   Firebase Web API keys identify the project and are used by the browser; do not put service-account credentials in any `VITE_` variable.
+3. In **Project settings → Service accounts**, generate a private key and store the downloaded JSON outside source control, for example `secrets/firebase-service-account.json`. In the backend PowerShell session set:
 
-```powershell
-$env:CAMPUS_API_TOKEN='dev-only-change-this-token'
-$env:CAMPUS_API_URL='http://127.0.0.1:8000'
-streamlit run app.py
-```
+   ```powershell
+   $env:CAMPUS_AUTH_MODE = "firebase"
+   $env:FIREBASE_PROJECT_ID = "your-firebase-project-id"
+   $env:GOOGLE_APPLICATION_CREDENTIALS = "C:\Users\gnane\STUDENT-IQ\secrets\firebase-service-account.json"
+   ```
 
-The API documentation is available at `http://127.0.0.1:8000/docs`. Set the same `CAMPUS_API_TOKEN` in the Streamlit terminal. Streamlit reads all displayed student metrics and lists from that API; empty databases show empty states rather than fabricated campus metrics.
+   Keep the service-account file private. The `secrets/` directory and common service-account filenames are ignored by Git.
+4. Add each permitted person under **Firebase Console → Authentication → Users**. Then assign the application role for that same email in the local database:
 
-## Import records
+   ```powershell
+   python -m src.create_user --email "analyst@campus.edu" --name "Campus Analyst" --role analyst --firebase-only
+   ```
 
-Use **Data import & quality** in Streamlit, or post a CSV/Excel file to `/imports`. `student_id` is required. Optional columns include:
+   Allowed roles are `admin`, `staff`, `analyst`, and `viewer`. The login page exposes Firebase email registration and Google sign-in in Firebase mode; email accounts must be verified before access. The first verified API exchange creates a `viewer` role if no application account exists. See [docs/FIREBASE_SETUP.md](docs/FIREBASE_SETUP.md) for setup and provider verification details.
+5. Restart Vite after setting its environment file and restart FastAPI after setting the backend variables. The backend verifies Firebase ID tokens and revoked-token status, requires the verified-email claim, and gets the role only from the application user table. It then issues the app's short-lived API session token. `CAMPUS_AUTH_MODE=firebase` disables local email/password login and suppresses automatic demo-account creation. Keep API-token compatibility separate for scripts.
 
-| Category | Canonical columns accepted |
-|---|---|
-| Academic | `cgpa`, `marks`, `backlogs`, `subject_performance` |
-| Attendance | `attendance`, `subject_attendance` |
-| LMS activity | `lms_logins`, `assignment_completion`, `learning_activity` |
-| Engagement | `clubs`, `events`, `hackathons`, `certifications` |
-| Placement | `aptitude`, `coding_assessment`, `mock_interview` |
-| Skills | `technical_skills`, `soft_skills` |
-| Feedback | `student_satisfaction`, `faculty_feedback` |
+To return to the local demo flow, unset the Firebase frontend variables or set `VITE_AUTH_MODE=local`, and run the backend with `CAMPUS_AUTH_MODE=local`. Local sign-in does not send email. Firebase sign-in, verification and reset cannot be exercised until a real Firebase project, service account, and test users are configured.
 
-Student ID matches update existing records. Duplicate IDs within one upload and invalid values are reported with row numbers. Column names can be mapped with the `mapping` query parameter, a JSON object from canonical name to source header, for example:
+---
 
-```powershell
-curl.exe -F "file=@students.csv" "http://127.0.0.1:8000/imports?mapping=%7B%22student_id%22%3A%22Roll%20No%22%7D"
-```
+## 4. Key Application Views
 
-Imports, source names, timestamps, counts, and row errors are stored in the database. Use only synthetic or appropriately authorized data in development.
+1. **Sign-In (`/`)**: Local PBKDF2 demo sign-in by default, or optional Firebase Email/Password registration/sign-in with verified-email gating, provider password reset, and Google popup sign-in. In Firebase mode, roles are read from the backend user table and local-password sign-in is disabled. Google requires Firebase Console provider and authorized-domain setup.
+2. **Campus Overview (`/`)**: Real-time KPI metric cards (Enrolled, Mean Success Score, Attendance %, Placement Readiness), Risk Distribution donut chart, Score Distribution bar chart, Department Comparison breakdown, and Priority Early Warning insights.
+3. **Student Directory (`/students`)**: Search by ID or name, department & semester filters, sortable columns, pagination, and direct CSV export.
+4. **Student Profile (`/students/:id`)**: Modular cards across all 7 categories (Academics, Attendance, LMS, Engagement, Placement, Skills, Feedback). Differentiates unrecorded indicators from zero and includes an in-page modal to log support interventions.
+5. **Early Warning & At-Risk Analytics (`/at-risk`)**: Filterable high/medium risk candidate list, translated contributing factor explanations, actionable recommendations, and 1-click intervention launch.
+6. **Academic & Placement Analytics (`/analytics`)**: Strong-academics / low-placement-readiness segment analysis (academic ≥70%, placement <50%), cohort/semester comparisons, and department intelligence.
+7. **Guided Data Import (`/imports`)**: 4-step wizard: select CSV/Excel file, map source headers to canonical fields, preview first 5 sample rows, and execute database import with row-by-row error reporting.
+8. **Interventions Workflow (`/interventions`)**: Create support actions, assign owners/counselors, set follow-up dates, update status (`Open`, `In Progress`, `Completed`, `Cancelled`), and track overdue tasks.
+9. **Predictive Classifier & Model Transparency (`/predictions`)**: Held-out evaluation metrics audit (`accuracy`, `balanced_accuracy`, `f1`, `roc_auc`), synthetic data warnings, and parameter simulation interface.
+10. **Reports & Exports (`/reports`)**: Direct downloads for Excel (`.xlsx`), CSV (`.csv`), and executive summary PDF (`.pdf`) documents.
 
-To populate the seven categories for a local dashboard walkthrough, run `python data/generate_campus_data.py` and import `data/dev_campus_students.csv` as shown above. Rows include `data_origin=SYNTHETIC_DEVELOPMENT_ONLY`, DEMO IDs, and synthetic names. To create the separate synthetic labels used by the experimental classifier, run `python data/generate_data.py` as described below; the generated rows also include an explicit synthetic origin marker.
+---
 
-## Success score and risk
+## 5. Verification in the current checkout
 
-The backend normalizes indicators to 0–100 (CGPA × 10; backlogs deduct 20 points each; engagement and LMS counts are capped at 10 and scaled to 100; percentage indicators are clipped to 0–100) and averages observed indicators within each category. Category weights are academic 25%, attendance 15%, LMS 12%, engagement 10%, placement readiness 18%, skills 12%, feedback 8%. The scoring service accepts explicit replacement weights and a coverage threshold; these are prototype assumptions, not scientifically validated. Scores are reweighted over categories with data; coverage is the sum of their configured weights. The default overall score is considered sufficiently covered at 50% category weight. Missing categories are never silently treated as zero.
+| Test Suite / Tool | Command | Result |
+|---|---|---|
+| **Backend Unit & API Tests** | `python -m pytest -q` | **30 passed**, 1 Starlette/httpx deprecation warning |
+| **Frontend TypeScript Check** | `npx.cmd tsc --noEmit` | **Passed**, exit code 0 |
+| **Frontend Production Build** | `npm.cmd run build` | **Passed**; route-level chunks, largest output is the 358 kB chart dependency chunk; no >500 kB warning |
+| **Frontend lint** | `npm.cmd run lint` | **Passed with existing unused-import and React hook warnings** |
+| **Browser workflow** | Not run | No browser automation runtime was available in this environment. Firebase mailbox delivery and Google OAuth require external project configuration and were not verified. |
 
-`/at-risk` identifies sufficiently covered scores under 65 and shows the lowest observed categories as contributing factors. Placement readiness is an aggregate of observed aptitude, coding, and mock interview indicators. The dashboard includes API-backed cohort summaries, a strong-academics/low-placement segment, read-only student profiles, intervention status updates, and CSV/Excel/PDF exports. It does not provide profile editing or detailed subject-level trends.
+The API test suite exercises login failure/success, JWT expiry and role controls, CSV/Excel imports, import validation, student paging/profile, model status, intervention history, and CSV/XLSX/PDF report responses. It does not verify rendered browser interactions.
 
-## Experimental model
+---
 
-The existing dataset is synthetic and its pass outcome is derived from a generated score formula. It cannot support claims about real-world predictive accuracy. Training is a separate explicit command:
+## 6. Security Limitations & Responsible Analytics
 
-```powershell
-python data/generate_data.py
-python -m src.train
-```
-
-Training fits preprocessing and the Random Forest inside one saved pipeline, uses a stratified held-out split, and writes experimental metrics to `models/metrics.json`. Application startup does not train or load the model. `/predict` reports a clear missing-artifact error until training has been run. Do not use the predictions for consequential decisions about students.
-
-## Tests
-
-```powershell
-python -m pytest
-```
-
-The included tests cover feature validation, score coverage/weighting, authenticated database imports, role restrictions, partial updates, and missing model artifact handling. Run them with `python -m pytest -q`; report results from the environment in which they actually ran.
-
-## Current limitations
-
-- SQLite persistence is for local development; SQLAlchemy, PostgreSQL, formal migrations, and a production database setup are not implemented.
-- API-key bearer authentication and basic role checks are implemented. Production user provisioning, institutional SSO, fine-grained per-record access, audit logging, and encryption at rest are not implemented. Do not expose this prototype or its student records to an untrusted network.
-- The API currently accepts only localhost Streamlit CORS requests; it has no institutional SIS/LMS integrations or scheduled feeds.
-- Import support handles flat rows, not relational subject-level records. Duplicate IDs within a file are rejected; matching database IDs update the existing profile while blank or absent values preserve stored values. There is no row-level change audit or field-level sensitive-data policy.
-- Intervention records can be created, listed, assigned an owner and follow-up date, and moved between basic statuses. There is no notification or audit-history workflow.
-- CSV exports, an Excel student report, a PDF summary report, and CSV/Excel imports are available. Detailed subject-level charts, formal security controls, and full integration/end-to-end tests remain to be built.
-- Model metrics from the generated dataset are experimental and must not be presented as institutional performance evidence.
+- **Local Prototype Scope**: Signed JWT tokens and PBKDF2 hashing provide secure local authentication. In institutional production environments, integrate with enterprise SAML 2.0 / OpenID Connect (OIDC) identity providers (e.g. Azure AD, Okta) and enforce HTTPS/TLS termination.
+- **Firebase Mode**: Firebase email registration, verification and password reset require Firebase Console setup and server-side Admin SDK credentials. New verified identities receive only the `viewer` role; elevated access remains database-controlled. Google sign-in is implemented with the Firebase Web SDK and uses the same backend ID-token verification and role provisioning. Live provider behavior still requires project setup and has not been verified here. Backend JWT sessions remain short-lived but are not centrally revocable until expiry.
+- **Policy Scoring Assumptions**: Success score weights (academic 25%, placement 18%, attendance 15%, LMS 12%, skills 12%, engagement 10%, feedback 8%) are configurable policy assumptions, not scientifically validated predictions.
+- **Synthetic Data**: Development records in `data/dev_campus_students.csv` and `data/student_data.csv` are synthetically generated for demonstration. Predictions must not be used as authoritative ground truth for real student academic decisions.
+- **Model Evaluation**: The saved metrics were reproduced from the existing synthetic dataset and fixed held-out random split. The `pass` target is generated directly from the same four model input features, so these metrics measure agreement with a synthetic formula, not prediction of real student outcomes.
