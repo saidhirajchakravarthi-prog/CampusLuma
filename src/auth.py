@@ -14,21 +14,20 @@ from src.database import get_user_by_email, list_users, save_user
 
 logger = logging.getLogger(__name__)
 
-# Enforce a 256-bit (32+ byte) secret key for HMAC-SHA256
-_DEFAULT_DEV_SECRET = "student-iq-smart-campus-analytics-secret-key-development-2026-secure-32bytes"
-JWT_SECRET = os.getenv("CAMPUS_JWT_SECRET", _DEFAULT_DEV_SECRET)
+# Keep an unset local-development secret out of source control. Tokens issued
+# without an explicitly configured key are intentionally invalidated on restart.
+JWT_SECRET = os.getenv("CAMPUS_JWT_SECRET") or secrets.token_urlsafe(32)
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRE_MINUTES = int(os.getenv("CAMPUS_JWT_EXPIRE_MINUTES", "480"))  # Default 8 hours
 VALID_ROLES = {"viewer", "analyst", "staff", "admin"}
 
 
 def validate_runtime_auth_configuration() -> None:
-    """Fail closed if Firebase sessions would use the checked-in development key."""
+    """Fail closed if Firebase sessions would use a missing or placeholder key."""
     if os.getenv("CAMPUS_AUTH_MODE", "local").strip().lower() != "firebase":
         return
     configured_secret = os.getenv("CAMPUS_JWT_SECRET", "")
     if (len(configured_secret.encode("utf-8")) < 32
-            or hmac.compare_digest(configured_secret, _DEFAULT_DEV_SECRET)
             or configured_secret.strip().lower().startswith(("replace-", "your-", "<"))):
         raise RuntimeError(
             "Firebase authentication requires a deployment-specific CAMPUS_JWT_SECRET "

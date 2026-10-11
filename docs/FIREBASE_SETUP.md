@@ -16,6 +16,7 @@ Create `frontend/.env.local` (not committed) with:
 
 ```dotenv
 VITE_AUTH_MODE=firebase
+VITE_API_BASE_URL=http://127.0.0.1:8000
 VITE_FIREBASE_PROJECT_ID=your-firebase-project-id
 VITE_FIREBASE_API_KEY=your-firebase-web-api-key
 VITE_FIREBASE_AUTH_DOMAIN=your-firebase-project-id.firebaseapp.com
@@ -23,7 +24,7 @@ VITE_FIREBASE_AUTH_DOMAIN=your-firebase-project-id.firebaseapp.com
 
 Set backend variables in the backend PowerShell session:
 
-Generate a deployment-specific `CAMPUS_JWT_SECRET` with at least 32 random bytes and store it in the backend secret manager. Firebase-mode startup rejects missing, placeholder, and checked-in development signing keys.
+Generate a deployment-specific `CAMPUS_JWT_SECRET` with at least 32 random bytes and store it in the backend secret manager. Firebase-mode startup rejects missing and placeholder signing keys.
 
 ```powershell
 $env:CAMPUS_AUTH_MODE = "firebase"
@@ -60,3 +61,5 @@ To verify email registration and reset, use a test Firebase project and mailbox 
 - `auth/popup-blocked`: allow popups for the app hostname. `auth/popup-closed-by-user` means sign-in was cancelled.
 
 For production, use HTTPS, restrict Firebase API keys by appropriate referrers/APIs, set deployment domains explicitly, and apply the institution's identity, privacy, and data-retention policies.
+
+For Cloudflare Pages frontend settings, production API URL, backend CORS, and durable separate SQLite storage, see [CLOUDFLARE_PAGES_DEPLOYMENT.md](CLOUDFLARE_PAGES_DEPLOYMENT.md).

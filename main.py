@@ -209,16 +209,26 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+DEFAULT_CORS_ORIGINS = (
+    "http://localhost:8501",
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://127.0.0.1:8501",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:5174",
+)
+
+
+def configured_cors_origins() -> list[str]:
+    configured = os.getenv("CAMPUS_CORS_ORIGINS", "")
+    deployment_origins = [origin.strip() for origin in configured.split(",") if origin.strip()]
+    origins = deployment_origins or list(DEFAULT_CORS_ORIGINS)
+    return list(dict.fromkeys(origins))
+
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:8501",
-        "http://localhost:5173",
-        "http://localhost:5174",
-        "http://127.0.0.1:8501",
-        "http://127.0.0.1:5173",
-        "http://127.0.0.1:5174",
-    ],
+    allow_origins=configured_cors_origins(),
     allow_credentials=True,
     allow_methods=["GET", "POST", "PATCH"],
     allow_headers=["Authorization", "Content-Type"],

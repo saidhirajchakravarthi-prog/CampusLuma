@@ -12,19 +12,34 @@ import pytest
 import src.database as database
 
 
-def test_firebase_mode_rejects_missing_or_default_jwt_secret(monkeypatch):
+def test_firebase_mode_rejects_missing_or_placeholder_jwt_secret(monkeypatch):
     monkeypatch.setenv("CAMPUS_AUTH_MODE", "firebase")
     monkeypatch.delenv("CAMPUS_JWT_SECRET", raising=False)
     with pytest.raises(RuntimeError, match="deployment-specific CAMPUS_JWT_SECRET"):
         auth.validate_runtime_auth_configuration()
 
-    for invalid_secret in (auth._DEFAULT_DEV_SECRET, "replace-with-a-random-32-byte-secret-key-for-jwt-signing"):
+    for invalid_secret in ("short", "replace-with-a-random-32-byte-secret-key-for-jwt-signing"):
         monkeypatch.setenv("CAMPUS_JWT_SECRET", invalid_secret)
         with pytest.raises(RuntimeError, match="deployment-specific CAMPUS_JWT_SECRET"):
             auth.validate_runtime_auth_configuration()
 
     monkeypatch.setenv("CAMPUS_JWT_SECRET", "a" * 32)
     auth.validate_runtime_auth_configuration()
+
+
+def test_cors_origins_include_configured_deployment_hosts(monkeypatch):
+    monkeypatch.setenv("CAMPUS_CORS_ORIGINS", "https://campusluma.pages.dev, https://app.example.com")
+
+    origins = main.configured_cors_origins()
+
+    assert "https://campusluma.pages.dev" in origins
+    assert "https://app.example.com" in origins
+
+
+def test_cors_origins_keep_local_defaults_when_unset(monkeypatch):
+    monkeypatch.delenv("CAMPUS_CORS_ORIGINS", raising=False)
+
+    assert "http://localhost:5173" in main.configured_cors_origins()
 
 
 def test_import_persists_and_role_controls_mutations(tmp_path, monkeypatch):
